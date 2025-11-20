@@ -21,13 +21,23 @@ public class SecurityConfig {
 
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    String[] path = {"/api/v1/products", "/api/v1/categories/**"};
-    String[] adminPath = {"/api/v1/auth/**"};
+    String[] publicPaths = {
+            "/api/v1/auth/**",
+            "/v3/api-docs.yaml",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
+    };
+
+    String[] adminPaths = {
+            "/api/v1/products/**",
+            "/api/v1/categories/**"
+    };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // tắt CSRF
+                .csrf(AbstractHttpConfigurer::disable) // disable CSRF
                 // 2. Cấu hình Session Management thành STATELESS (Phi trạng thái)
                 // (Không tạo Session, đúng kiểu JWT)
                 .sessionManagement(session ->
@@ -44,19 +54,17 @@ public class SecurityConfig {
                 // 3. Phân quyền cho các HTTP Request
                 .authorizeHttpRequests(authorize ->
                         authorize
-                                // 4 Cho phép truy cập vào các request có path là ...
-                                .requestMatchers(adminPath).permitAll()
+                                .requestMatchers(publicPaths).permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/orders").hasRole("USER")
-                                .requestMatchers(HttpMethod.POST, path).hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, path).hasRole("ADMIN")
-                                .anyRequest()  // ...còn lại
+                                .requestMatchers(HttpMethod.POST, adminPaths).hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PUT, adminPaths).hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, adminPaths).hasRole("ADMIN")
+                                .anyRequest()
                                 .authenticated() // ...phải được xác thực
                 )
                 .authenticationProvider(authenticationProvider)
-                // 2. "CÀI ĐẶT" BỘ LỌC
-                // (Chạy JwtAuthFilter TRƯỚC bộ lọc UsernamePassword...)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);// máy xác thực
-        // 6. Xây dựng và trả về chuỗi lọc
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }
