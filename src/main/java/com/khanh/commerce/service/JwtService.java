@@ -57,7 +57,7 @@ public class JwtService {
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
-    
+
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
@@ -77,7 +77,6 @@ public class JwtService {
         // 1. Nó "dịch" (decode) Header và Payload.
         // 2. Nó dùng "getSignInKey()" (chìa khóa bí mật)
         //    để "kiểm tra chữ ký" (Signature).
-        //
         // (Nếu chữ ký giả/vé hết hạn, nó sẽ NÉM LỖI ngay tại đây)
         return Jwts.parserBuilder()
                 .setSigningKey(getSignInKey())
