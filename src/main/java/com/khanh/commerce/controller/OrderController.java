@@ -3,7 +3,7 @@ package com.khanh.commerce.controller;
 import com.khanh.commerce.dto.request.OrderRequestDTO;
 import com.khanh.commerce.dto.request.OrderUpdateRequestDTO;
 import com.khanh.commerce.dto.response.ApiResponse;
-import com.khanh.commerce.dto.response.OrderResponse;
+import com.khanh.commerce.dto.response.OrderResponseDTO;
 import com.khanh.commerce.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,38 +18,38 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ApiResponse<String> createOrder(@Valid @RequestBody OrderRequestDTO request) {
-        return ApiResponse.<String>builder()
-                .message("Đặt hàng thành công")
+    public ApiResponse<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO request) {
+        return ApiResponse.<OrderResponseDTO>builder()
+                .message("Order created successfully")
                 .data(orderService.createOrder(request))
                 .build();
     }
 
     @GetMapping
-    public ApiResponse<List<OrderResponse>> getAllOrders() {
-        return ApiResponse.<List<OrderResponse>>builder()
+    public ApiResponse<List<OrderResponseDTO>> getAllOrders() {
+        return ApiResponse.<List<OrderResponseDTO>>builder()
                 .message("Get all orders success")
                 .data(orderService.getAllOrders())
                 .build();
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<OrderResponse> updateStatus(
+    public ApiResponse<OrderResponseDTO> updateStatus(
             @PathVariable Long id,
             @RequestParam String status
     ) {
-        return ApiResponse.<OrderResponse>builder()
+        return ApiResponse.<OrderResponseDTO>builder()
                 .message("Update order status success")
                 .data(orderService.updateOrderStatus(id, status))
                 .build();
     }
 
     @PutMapping("/{id}/info")
-    public ApiResponse<OrderResponse> updateOrderInfo(
+    public ApiResponse<OrderResponseDTO> updateOrderInfo(
             @PathVariable Long id,
             @Valid @RequestBody OrderUpdateRequestDTO request
     ) {
-        return ApiResponse.<OrderResponse>builder()
+        return ApiResponse.<OrderResponseDTO>builder()
                 .message("Update order info success")
                 .data(orderService.updateOrderInfo(id, request))
                 .build();

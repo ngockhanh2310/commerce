@@ -36,4 +36,24 @@ public class ProductController {
                 .data(productService.getAllProducts(pageable))
                 .build();
     }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ProductResponseDTO> updateProduct(
+            @PathVariable Long id,
+            @Valid @RequestPart("product") ProductRequestDTO request,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile
+    ) {
+        return ApiResponse.<ProductResponseDTO>builder()
+                .message("Product updated successfully")
+                .data(productService.updateProduct(id, request, imageFile))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ApiResponse.<Void>builder()
+                .message("Product deleted successfully")
+                .build();
+    }
 }

@@ -31,4 +31,20 @@ public class CategoryController {
                 .data(categoryService.getAllCategories())
                 .build();
     }
+
+    @PutMapping("/update/{id}")
+    public ApiResponse<CategoryResponseDTO> updateCategory(
+            @PathVariable Long id,
+            @RequestBody @Valid CategoryRequestDTO request
+    ) {
+        return ApiResponse.<CategoryResponseDTO>builder()
+                .message("Category updated successfully")
+                .data(categoryService.updateCategory(id, request))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+    }
 }
