@@ -3,6 +3,7 @@ package com.khanh.commerce.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -19,10 +20,11 @@ public class Category {
 
     @Column(nullable = false, unique = true)
     private String name;
-    
+
     // "mappedBy" trỏ tới tên biến "category" trong class Product
     // CascadeType.ALL: Nếu xóa Category, xóa luôn tất cả Product thuộc về nó (Cẩn thận!)
     // FetchType.LAZY: Chỉ tải danh sách products khi cần dùng
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Product> products;
+    @Builder.Default
+    private List<Product> products = new ArrayList<>();
 }

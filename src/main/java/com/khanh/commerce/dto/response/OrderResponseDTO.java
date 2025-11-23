@@ -5,7 +5,7 @@ import com.khanh.commerce.model.OrderStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record OrderResponse(
+public record OrderResponseDTO(
         Long id,
         String fullName,
         String phoneNumber,
@@ -15,6 +15,6 @@ public record OrderResponse(
         LocalDateTime orderDate,
         OrderStatus status,
         Float totalMoney,
-        List<OrderDetailResponse> orderDetails
+        List<OrderDetailResponseDTO> orderDetails
 ) {
 }
