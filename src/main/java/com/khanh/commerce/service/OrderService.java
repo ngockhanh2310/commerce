@@ -1,10 +1,9 @@
 package com.khanh.commerce.service;
 
-import com.khanh.commerce.dto.request.CartItemDTO;
 import com.khanh.commerce.dto.request.OrderRequestDTO;
 import com.khanh.commerce.dto.request.OrderUpdateRequestDTO;
-import com.khanh.commerce.dto.response.OrderDetailResponse;
-import com.khanh.commerce.dto.response.OrderResponse;
+import com.khanh.commerce.dto.response.OrderDetailResponseDTO;
+import com.khanh.commerce.dto.response.OrderResponseDTO;
 import com.khanh.commerce.entity.Order;
 import com.khanh.commerce.entity.OrderDetail;
 import com.khanh.commerce.entity.Product;
@@ -12,6 +11,7 @@ import com.khanh.commerce.entity.User;
 import com.khanh.commerce.exception.CustomAccessException;
 import com.khanh.commerce.exception.DuplicateException;
 import com.khanh.commerce.exception.ResourceNotFoundException;
+import com.khanh.commerce.mapper.OrderMapper;
 import com.khanh.commerce.model.OrderStatus;
 import com.khanh.commerce.model.Role;
 import com.khanh.commerce.repository.OrderRepository;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,56 +32,42 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final OrderMapper orderMapper;
 
     @Transactional
-    public String createOrder(OrderRequestDTO request) {
+    public OrderResponseDTO createOrder(OrderRequestDTO request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Order order = Order.builder()
-                .fullName(request.fullName())
-                .phoneNumber(request.phoneNumber())
-                .address(request.address())
-                .note(request.note())
-                .email(request.email())
-                .orderDate(LocalDateTime.now())
-                .status(OrderStatus.PENDING)
-                .user(user)
-                .totalMoney(0f)
-                .build();
+        Order order = orderMapper.toOrder(request);
 
-        List<OrderDetail> orderDetails = new ArrayList<>();
-        float totalMoney = 0;
+        order.setUser(user);
+        order.setOrderDate(LocalDateTime.now());
+        order.setStatus(OrderStatus.PENDING);
 
-        for (CartItemDTO item : request.cartItems()) {
-            Product product = productRepository.findById(item.productId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + item.productId()));
+        float totalOrderMoney = 0;
 
-            OrderDetail detail = OrderDetail.builder()
-                    .order(order)
-                    .product(product)
-                    .price(product.getPrice())
-                    .numberOfProducts(item.quantity())
-                    .totalMoney(product.getPrice() * item.quantity())
-                    .build();
+        for (OrderDetail detail : order.getOrderDetails()) {
+            Product realProduct = productRepository.findById(detail.getProduct().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-            orderDetails.add(detail);
-
-            totalMoney += detail.getTotalMoney();
+            detail.setProduct(realProduct);
+            detail.setPrice(realProduct.getPrice());
+            detail.setTotalMoney(realProduct.getPrice() * detail.getNumberOfProducts());
+            totalOrderMoney += detail.getTotalMoney();
         }
 
-        order.setOrderDetails(orderDetails);
-        order.setTotalMoney(totalMoney);
+        order.setTotalMoney(totalOrderMoney);
 
-        orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
 
-        return "Order placed successfully with ID: " + order.getId();
+        return orderMapper.toOrderResponse(savedOrder);
     }
 
-    private OrderResponse mapToOrderResponse(Order order) {
-        List<OrderDetailResponse> details = order.getOrderDetails().stream()
-                .map(detail -> new OrderDetailResponse(
+    private OrderResponseDTO mapToOrderResponse(Order order) {
+        List<OrderDetailResponseDTO> details = order.getOrderDetails().stream()
+                .map(detail -> new OrderDetailResponseDTO(
                         detail.getProduct().getId(),
                         detail.getProduct().getName(),
                         detail.getPrice(),
@@ -91,7 +76,7 @@ public class OrderService {
                 ))
                 .collect(Collectors.toList());
 
-        return new OrderResponse(
+        return new OrderResponseDTO(
                 order.getId(),
                 order.getFullName(),
                 order.getPhoneNumber(),
@@ -106,7 +91,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderResponse> getAllOrders() {
+    public List<OrderResponseDTO> getAllOrders() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -122,7 +107,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse updateOrderStatus(Long orderId, String status) {
+    public OrderResponseDTO updateOrderStatus(Long orderId, String status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
@@ -137,7 +122,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse updateOrderInfo(Long orderId, OrderUpdateRequestDTO request) {
+    public OrderResponseDTO updateOrderInfo(Long orderId, OrderUpdateRequestDTO request) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
