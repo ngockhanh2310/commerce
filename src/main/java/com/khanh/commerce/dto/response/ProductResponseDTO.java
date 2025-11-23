@@ -6,6 +6,6 @@ public record ProductResponseDTO(
         Float price,
         String thumbnail, // Tên file ảnh
         String description,
-        String categoryName // Trả về tên danh mục cho tiện
+        String categoryName
 ) {
 }

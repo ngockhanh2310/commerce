@@ -1,6 +1,6 @@
 package com.khanh.commerce.dto.response;
 
-public record OrderDetailResponse(
+public record OrderDetailResponseDTO(
         Long productId,
         String productName,
         Float price,
