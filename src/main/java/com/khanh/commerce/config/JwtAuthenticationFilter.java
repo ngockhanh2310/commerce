@@ -35,7 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
-        // LOG 1: Kiểm tra Header
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             System.out.println("FILTER: Không tìm thấy Header Authorization hoặc không có Bearer prefix");
             filterChain.doFilter(request, response);
@@ -53,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
                 boolean isValid = jwtService.isTokenValid(jwt, userDetails);
-                System.out.println("🔵 FILTER: Token Valid? " + isValid);
+                System.out.println(" FILTER: Token Valid? " + isValid);
 
                 if (isValid) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -63,14 +62,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("✅ FILTER: Xác thực thành công cho user: " + username);
+                    System.out.println(" FILTER: Xác thực thành công cho user: " + username);
                 } else {
                     System.out.println("FILTER: Token KHÔNG hợp lệ (Hết hạn hoặc sai chữ ký)");
                 }
             }
         } catch (Exception e) {
             System.out.println("FILTER ERROR: Lỗi khi xử lý Token!");
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
 
         filterChain.doFilter(request, response);
