@@ -38,20 +38,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable) // disable CSRF
-                // 2. Cấu hình Session Management thành STATELESS (Phi trạng thái)
-                // (Không tạo Session, đúng kiểu JWT)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(exceptions ->
-                        // Chỉ định cách xử lý khi xác thực thất bại
-                        // (ví dụ: chưa đăng nhập)
                         exceptions.authenticationEntryPoint(
                                 // Trả về 401 Unauthorized thay vì 403
                                 new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
                         )
                 )
-                // 3. Phân quyền cho các HTTP Request
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers(publicPaths).permitAll()
