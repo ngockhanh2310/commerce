@@ -27,7 +27,6 @@ public class ApplicationConfig {
     }
 
     // 2. Bean để Mã hóa Password
-    // (Luôn dùng BCrypt)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -43,7 +42,7 @@ public class ApplicationConfig {
         return authProvider;
     }
 
-    // 4. Quản lý xác thực (Dùng để gọi ở Controller)
+    // 4. Quản lý xác thực
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
